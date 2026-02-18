@@ -83,7 +83,21 @@ app.put('/api/todos/:id', (req, res) => {
     return res.status(404).json({ error: 'Todo not found' });
   }
 
-  // 🔁 Toggle instead of forcing true
+  // If body contains `text`, treat this as an edit request
+  if (req.body && typeof req.body.text === 'string') {
+    const newText = req.body.text.trim();
+    if (!newText) {
+      return res.status(400).json({ error: 'Todo text is required' });
+    }
+    todos[todoIndex].text = newText;
+    if (writeTodos(todos)) {
+      return res.json(todos[todoIndex]);
+    } else {
+      return res.status(500).json({ error: 'Failed to update todo' });
+    }
+  }
+
+  // Otherwise toggle completion
   todos[todoIndex].completed = !todos[todoIndex].completed;
 
   if (writeTodos(todos)) {
